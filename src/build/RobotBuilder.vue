@@ -1,40 +1,37 @@
 <template>
   <div class="content">
-    <button class="add-to-cart" @click="addToCart()">Add to Cart</button>
-    <h1 class="robot-name">
-      {{selectedRobot.head.title}}
-      <span class="sale" v-if="selectedRobot.head.onSale">Sale!</span>
-    </h1>
+    <div class="preview">
+      <CollapsibleSection :open="true">
+        <div class="preview-content">
+          <div class="top-row">
+            <img :src="selectedRobot.head.src" alt="head"/>
+          </div>
+          <div class="middle-row">
+            <img :src="selectedRobot.leftArm.src" class="rotate-left" alt="left arm"/>
+            <img :src="selectedRobot.torso.src" alt="torso"/>
+            <img :src="selectedRobot.rightArm.src" class="rotate-right" alt="right arm"/>
+          </div>
+          <div class="bottom-row">
+            <img :src="selectedRobot.base.src" alt="base"/>
+          </div>
+        </div>
+      </CollapsibleSection>
+      <button class="add-to-cart" @click="addToCart()">Add to Cart</button>
+    </div>
+    <!--    <h1 class="robot-name">-->
+    <!--      {{selectedRobot.head.title}}-->
+    <!--      <span class="sale" v-if="selectedRobot.head.onSale">Sale!</span>-->
+    <!--    </h1>-->
     <div class="top-row">
-      <div :class="[{'sale-border': selectedRobot.head.onSale}, 'top', 'part']">
-        <img :src="selectedRobot.head.src" title="head" alt="head"/>
-        <button class="prev-selector" @click="previous('headIndex', this.headIndex, availableParts.heads.length)">&#9668;</button>
-        <button class="next-selector" @click="next('headIndex', this.headIndex, availableParts.heads.length)">&#9658;</button>
-      </div>
+      <PartSelector :parts="availableParts.heads" @part-selected="part => selectedRobot.head = part" position="top"/>
     </div>
     <div class="middle-row">
-      <div class="left part">
-        <img :src="selectedRobot.leftArm.src" title="left arm" alt="left arm"/>
-        <button class="prev-selector" @click="previous('leftArmIndex', this.leftArmIndex, availableParts.arms.length)">&#9650;</button>
-        <button class="next-selector" @click="next('leftArmIndex', this.leftArmIndex, availableParts.arms.length)">&#9660;</button>
-      </div>
-      <div class="center part">
-        <img :src="selectedRobot.torso.src" title="torso" alt="torso"/>
-        <button class="prev-selector" @click="previous('torsoIndex', this.torsoIndex, availableParts.torsos.length)">&#9668;</button>
-        <button class="next-selector" @click="next('torsoIndex', this.torsoIndex, availableParts.torsos.length)">&#9658;</button>
-      </div>
-      <div class="right part">
-        <img :src="selectedRobot.rightArm.src" title="right arm" alt="right arm"/>
-        <button class="prev-selector" @click="previous('rightArmIndex', this.rightArmIndex, availableParts.arms.length)">&#9650;</button>
-        <button class="next-selector" @click="next('rightArmIndex', this.rightArmIndex, availableParts.arms.length)">&#9660;</button>
-      </div>
+      <PartSelector :parts="availableParts.arms" @part-selected="part => selectedRobot.leftArm = part" position="left"/>
+      <PartSelector :parts="availableParts.torsos" @part-selected="part => selectedRobot.torso = part" position="center"/>
+      <PartSelector :parts="availableParts.arms" @part-selected="part => selectedRobot.rightArm = part" position="right"/>
     </div>
     <div class="bottom-row">
-      <div class="bottom part">
-        <img :src="selectedRobot.base.src" title="base" alt="base"/>
-        <button class="prev-selector" @click="previous('baseIndex', this.baseIndex, availableParts.bases.length)">&#9668;</button>
-        <button class="next-selector" @click="next('baseIndex', this.baseIndex, availableParts.bases.length)">&#9658;</button>
-      </div>
+      <PartSelector :parts="availableParts.bases" @part-selected="part => selectedRobot.base = part" position="bottom"/>
     </div>
     <div v-show="cart.length > 0">
       <h1 class="cart">Cart</h1>
@@ -46,10 +43,10 @@
         </tr>
         </thead>
         <tbody>
-          <tr v-for="(robot, index) in cart" :key="index">
-            <td>{{robot.head.title}}</td>
-            <td class="cost">{{robot.cost}}</td>
-          </tr>
+        <tr v-for="(robot, index) in cart" :key="index">
+          <td>{{ robot.head.title }}</td>
+          <td class="cost">{{ robot.cost }}</td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -57,46 +54,39 @@
 </template>
 
 <script>
+import PartSelector from './PartSelector.vue';
+import CollapsibleSection from '../shared/CollapsibleSection.vue';
 import availableParts from '../data/parts';
 
 export default {
   name: 'RobotBuilder',
+  components: {
+    PartSelector,
+    CollapsibleSection,
+  },
   data() {
     return {
       availableParts,
       cart: [],
-      headIndex: 0,
-      leftArmIndex: 0,
-      rightArmIndex: 0,
-      torsoIndex: 0,
-      baseIndex: 0,
+      selectedRobot: {
+        head: {},
+        leftArm: {},
+        rightArm: {},
+        torso: {},
+        base: {},
+      },
     };
   },
   methods: {
-    next(indexName, index, arrayLength) {
-      this[indexName] = (index + 1) % arrayLength;
-    },
-    previous(indexName, index, arrayLength) {
-      this[indexName] = index === 0 ? arrayLength - 1 : index - 1;
-    },
     addToCart() {
       const robot = this.selectedRobot;
       const cost = Object.keys(robot)
         .map((key) => robot[key].cost)
         .reduce((acc, current) => acc + current);
 
-      this.cart.push({ ...robot, cost });
-    },
-  },
-  computed: {
-    selectedRobot() {
-      return {
-        head: availableParts.heads[this.headIndex],
-        leftArm: availableParts.arms[this.leftArmIndex],
-        rightArm: availableParts.arms[this.rightArmIndex],
-        torso: availableParts.torsos[this.torsoIndex],
-        base: availableParts.bases[this.baseIndex],
-      };
+      this.cart.push({
+        ...robot, cost,
+      });
     },
   },
 };
@@ -228,9 +218,7 @@ export default {
 }
 
 .add-to-cart {
-  position: absolute;
-  right: 30px;
-  width: 220px;
+  width: 100%;
   padding: 3px;
   font-size: 16px;
 }
@@ -252,5 +240,31 @@ table * {
   border-left: 3px solid red;
   border-top: 3px solid red;
   border-right: 3px solid red;
+}
+
+.preview {
+  position: absolute;
+  top: -20px;
+  right: 0;
+  width: 210px;
+  height: 210px;
+  padding: 5px;
+}
+
+.preview-content {
+  border: 1px solid #999;
+}
+
+.preview img {
+  width: 50px;
+  height: 50px;
+}
+
+.rotate-right {
+  transform: rotate(90deg);
+}
+
+.rotate-left {
+  transform: rotate(-90deg);
 }
 </style>
