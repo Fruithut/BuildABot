@@ -1,5 +1,5 @@
 <template>
-  <div class="content">
+  <div v-if="availableParts" class="content">
     <div class="preview">
       <CollapsibleSection :open="true">
         <div class="preview-content">
@@ -18,10 +18,6 @@
       </CollapsibleSection>
       <button class="add-to-cart" @click="addToCart()">Add to Cart</button>
     </div>
-    <!--    <h1 class="robot-name">-->
-    <!--      {{selectedRobot.head.title}}-->
-    <!--      <span class="sale" v-if="selectedRobot.head.onSale">Sale!</span>-->
-    <!--    </h1>-->
     <div class="top-row">
       <PartSelector :parts="availableParts.heads" @part-selected="part => selectedRobot.head = part" position="top"/>
     </div>
@@ -33,33 +29,21 @@
     <div class="bottom-row">
       <PartSelector :parts="availableParts.bases" @part-selected="part => selectedRobot.base = part" position="bottom"/>
     </div>
-    <div v-show="cart.length > 0">
-      <h1 class="cart">Cart</h1>
-      <table>
-        <thead>
-        <tr>
-          <th>Robot</th>
-          <th class="cost">Cost</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(robot, index) in cart" :key="index">
-          <td>{{ robot.head.title }}</td>
-          <td class="cost">{{ robot.cost }}</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
   </div>
 </template>
 
 <script>
+import { mapActions } from 'vuex';
 import PartSelector from './PartSelector.vue';
 import CollapsibleSection from '../shared/CollapsibleSection.vue';
-import availableParts from '../data/parts';
+
+import store from '../store';
 
 export default {
   name: 'RobotBuilder',
+  created() {
+    this.getParts();
+  },
   beforeRouteLeave(to, from, next) {
     if (this.addedToCart) {
       next(true);
@@ -74,9 +58,7 @@ export default {
   },
   data() {
     return {
-      addedToCart: false,
-      availableParts,
-      cart: [],
+      store,
       selectedRobot: {
         head: {},
         leftArm: {},
@@ -87,17 +69,25 @@ export default {
     };
   },
   methods: {
+    ...mapActions('robots', ['getParts', 'addRobotToCart']),
     addToCart() {
       const robot = this.selectedRobot;
       const cost = Object.keys(robot)
         .map((key) => robot[key].cost)
         .reduce((acc, current) => acc + current);
 
-      this.cart.push({
-        ...robot, cost,
-      });
-
-      this.addedToCart = true;
+      this.addRobotToCart({ ...robot, cost });
+    },
+  },
+  computed: {
+    availableParts() {
+      return this.store.state.robots.parts;
+    },
+    cart() {
+      return this.store.state.robots.cart;
+    },
+    addedToCart() {
+      return this.store.state.robots.cart.length > 0;
     },
   },
 };
@@ -232,15 +222,6 @@ export default {
   width: 100%;
   padding: 3px;
   font-size: 16px;
-}
-
-td, th {
-  text-align: left;
-  padding: 5px 20px 5px 5px;
-}
-
-.cart, .cost {
-  text-align: left;
 }
 
 table * {

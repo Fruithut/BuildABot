@@ -10,6 +10,7 @@ import RobotTorsos from '@/parts/RobotTorsos.vue';
 import RobotBases from '@/parts/RobotBases.vue';
 import SidebarStandard from '@/sidebars/SidebarStandard.vue';
 import SidebarBuild from '@/sidebars/SidebarBuild.vue';
+import ShoppingCart from '@/cart/ShoppingCart.vue';
 
 const routerHistory = createWebHistory();
 const router = createRouter({
@@ -28,6 +29,10 @@ const router = createRouter({
       default: RobotBuilder,
       sidebar: SidebarBuild,
     },
+  }, {
+    path: '/cart',
+    name: 'Cart',
+    component: ShoppingCart,
   }, {
     path: '/parts/browse',
     name: 'BrowseParts',

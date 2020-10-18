@@ -13,6 +13,11 @@
             Build
           </router-link>
         </li>
+        <li class="nav-item cart">
+          <router-link class="nav-link" :to="{name: 'Cart'}">
+            Cart <span class="cart-items">({{ cart.length }})</span>
+          </router-link>
+        </li>
       </ul>
     </nav>
   </header>
@@ -28,8 +33,15 @@
 </template>
 
 <script>
+import store from './store';
+
 export default {
   name: 'App',
+  computed: {
+    cart() {
+      return store.state.robots.cart;
+    },
+  },
 };
 </script>
 
@@ -76,6 +88,12 @@ ul {
   border-right: 1px solid #bbb;
 }
 
+.nav-item.cart {
+  position: relative;
+  margin-left: auto;
+  border-right: none;
+}
+
 .logo {
   vertical-align: middle;
   height: 30px;
@@ -101,5 +119,11 @@ ul {
   background: #aaa;
   width: 100px;
   min-height: 300px;
+}
+
+.cart-items {
+  border-radius: 50%;
+  background: #9929;
+  color: white;
 }
 </style>
