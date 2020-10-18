@@ -3,5 +3,8 @@ import App from './App.vue';
 
 import router from './router';
 import store from './store';
+import pinDirective from './shared/pin-directive';
 
-createApp(App).use(store).use(router).mount('#app');
+const app = createApp(App).use(store).use(router);
+app.directive('pin', pinDirective);
+app.mount('#app');
